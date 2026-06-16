@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="x5-video-player-type" content="h5">
+  <meta name="x5-video-player-fullscreen" content="false">
+  <title>专属信件</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #f8f3eb;
+      font-family: "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+    /* 全屏视频容器 */
+    .video-wrap {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      transition: opacity 0.8s ease-out;
+    }
+    #mainVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    /* 轻触提示 */
+    .touch-tip {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 16px;
+      padding: 10px 20px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 99px;
+      z-index: 11;
+      display: none;
+    }
+    /* 信封界面 */
+    .envelope-box {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.8s ease-in;
+    }
+    .envelope-img {
+      width: 85%;
+      max-width: 400px;
+      transition: all 0.5s ease-out;
+    }
+    .open-btn {
+      margin-top: 24px;
+      padding: 12px 36px;
+      background: #c88b6b;
+      color: #fff;
+      border: none;
+      border-radius: 99px;
+      font-size: 18px;
+      letter-spacing: 2px;
+      transition: all 0.5s ease-out;
+      cursor: pointer;
+    }
+    .open-btn:active {
+      background: #b07858;
+    }
+    /* 信件弹窗遮罩，默认完全隐藏，不会遮挡按钮 */
+    .letter-mask {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    /* 信纸初始状态 */
+    .letter-content {
+      width: 100%;
+      max-width: 420px;
+      max-height: 80vh;
+      background: #fffcf5;
+      padding: 32px 24px;
+      border-radius: 12px;
+      overflow-y: auto;
+      line-height: 1.8;
+      font-size: 16px;
+      color: #333;
+      opacity: 0;
+      transform: translateY(60px);
+      transition: all 0.8s ease-out;
+    }
+    /* 信纸展开动画 */
+    .letter-content.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .close-letter {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #c88b6b;
+      background: transparent;
+      color: #c88b6b;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    /* 小红书链接样式 */
+    .xhs-link {
+      color: #d62828;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="video-wrap">
+    <video 
+      id="mainVideo" 
+      autoplay 
+      muted 
+      playsinline 
+      webkit-playsinline 
+      x5-playsinline
+    >
+      <source src="video.mp4" type="video/mp4">
+    </video>
+    <div class="touch-tip" id="tip">轻触屏幕播放视频</div>
+  </div>
+
+  <div class="envelope-box">
+    <img class="envelope-img" src="envelope.png" alt="信封">
+    <button class="open-btn" id="openBtn">打开信件</button>
+  </div>
+
+  <!-- 新增遮罩层，默认display:none，不会遮挡下方按钮 -->
+  <div class="letter-mask" id="mask">
+    <div class="letter-content" id="letterContent">
+      <p>畢業論文的選題和瑤族相關，至於為什麼在眾多舞蹈素材中選擇瑤族，我想是瑤族在我的大學生活里出現的頻率非常高，第一次跟學院下鄉采風的地點是瑤族自治鄉，第二次下鄉主題變了以為不會接觸瑤族結果有幸在當地鄉慶上演繹穿堂舞，廣西民間課程開設了花棍腰鼓，甚至教育實習期間磨練的精品課程還是瑤族舞曲，就這樣重復出現的瑤族元素便自然而然成了敲定的選題。就好像我21年第一次來到桂林旅行，反復乘坐k96前往融創路過雁中路1號，就沒想到能在這上四年大學。</p>
+      <br>
+      <p>其實說來非常慚愧，大學四年期間一直在到處亂跑，北京上海杭州天津，南京濟南衡陽香港。主流文化對物質學歷的焦慮以及對美的忽視時常讓我感到焦慮，彷彿在睡覺前沒有完成清單上的某一項就是蹉跎了時光。幸好我還能出逃，跑到空曠的山野，無親的人流，到另一個空間換一種呼吸方式，如鳥翱翔，從禁錮的身心飛出去，飛夠了再飛回來。我喜歡航班即將起飛的時刻，身邊的人說各式各樣的語言，來往穿梭到世界各地，我也要把小小的自己送到一個從未踏足的角落，初升的太陽一點點光亮起來，我感覺到一種無限膨脹的自由。</p>
+      <br>
+      <p>关注我的小红薯：<a class="xhs-link" href="https://xhslink.com/m/i1Fke9gxnL" target="_blank">https://xhslink.com/m/i1Fke9gxnL</a>。</p>
+      <button class="close-letter" id="closeBtn">收起信件</button>
+    </div>
+  </div>
+
+<script>
+const video = document.getElementById('mainVideo');
+const tip = document.getElementById('tip');
+const videoWrap = document.querySelector('.video-wrap');
+const envelopeBox = document.querySelector('.envelope-box');
+const envelopeImg = document.querySelector('.envelope-img');
+const openBtn = document.getElementById('openBtn');
+const mask = document.getElementById('mask');
+const letterContent = document.getElementById('letterContent');
+const closeBtn = document.getElementById('closeBtn');
+let played = false;
+
+// 判断iPhone微信
+const ua = navigator.userAgent;
+const isIPhoneWechat = /iPhone/i.test(ua) && /MicroMessenger/i.test(ua);
+
+function playVideo() {
+  if (played) return;
+  played = true;
+  tip.style.display = 'none';
+  video.play().catch(() => {});
+}
+
+// 微信自动播放兼容
+if (/MicroMessenger/i.test(ua)) {
+  if (window.WeixinJSBridge) {
+    playVideo();
+  } else {
+    document.addEventListener('WeixinJSBridgeReady', playVideo, false);
+  }
+} else {
+  playVideo();
+}
+
+if (isIPhoneWechat) {
+  tip.style.display = 'block';
+  document.body.addEventListener('touchstart', playVideo, { once:true });
+  document.body.addEventListener('click', playVideo, { once:true });
+}
+
+// 视频结束平滑切换信封
+video.addEventListener('ended', () => {
+  videoWrap.style.opacity = '0';
+  setTimeout(() => {
+    videoWrap.style.display = 'none';
+    envelopeBox.style.display = 'flex';
+    setTimeout(() => {
+      envelopeBox.style.opacity = '1';
+    }, 100);
+  }, 500);
+});
+
+// 打开信件动画
+openBtn.addEventListener('click', () => {
+  envelopeImg.style.opacity = '0';
+  openBtn.style.opacity = '0';
+  setTimeout(() => {
+    envelopeImg.style.display = 'none';
+    openBtn.style.display = 'none';
+    mask.style.display = 'flex';
+    setTimeout(()=>{
+      letterContent.classList.add('show');
+    },50)
+  }, 500);
+});
+
+// 关闭信件动画
+closeBtn.addEventListener('click', () => {
+  letterContent.classList.remove('show');
+  setTimeout(() => {
+    mask.style.display = 'none';
+    envelopeImg.style.display = 'block';
+    openBtn.style.display = 'block';
+    void envelopeImg.offsetWidth;
+    void openBtn.offsetWidth;
+    envelopeImg.style.opacity = '1';
+    openBtn.style.opacity = '1';
+  }, 800);
+});
+</script>
+</body>
+</html>
