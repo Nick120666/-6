@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="x5-video-player-type" content="h5">
+  <meta name="x5-video-player-fullscreen" content="false">
+  <title>专属信件</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #f8f3eb;
+      font-family: "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+    /* 全屏视频容器 */
+    .video-wrap {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      transition: opacity 0.8s ease-out;
+    }
+    #mainVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    /* 轻触提示 */
+    .touch-tip {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 16px;
+      padding: 10px 20px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 99px;
+      z-index: 11;
+      display: none;
+    }
+    /* 信封界面 */
+    .envelope-box {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.8s ease-in;
+    }
+    .envelope-img {
+      width: 85%;
+      max-width: 400px;
+      transition: all 0.5s ease-out;
+    }
+    .open-btn {
+      margin-top: 24px;
+      padding: 12px 36px;
+      background: #c88b6b;
+      color: #fff;
+      border: none;
+      border-radius: 99px;
+      font-size: 18px;
+      letter-spacing: 2px;
+      transition: all 0.5s ease-out;
+      cursor: pointer;
+    }
+    .open-btn:active {
+      background: #b07858;
+    }
+    /* 信件弹窗遮罩，默认完全隐藏，不会遮挡按钮 */
+    .letter-mask {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    /* 信纸初始状态 */
+    .letter-content {
+      width: 100%;
+      max-width: 420px;
+      max-height: 80vh;
+      background: #fffcf5;
+      padding: 32px 24px;
+      border-radius: 12px;
+      overflow-y: auto;
+      line-height: 1.8;
+      font-size: 16px;
+      color: #333;
+      opacity: 0;
+      transform: translateY(60px);
+      transition: all 0.8s ease-out;
+    }
+    /* 信纸展开动画 */
+    .letter-content.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .close-letter {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #c88b6b;
+      background: transparent;
+      color: #c88b6b;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    /* 链接通用样式 */
+    .link-text {
+      color: #d62828;
+      text-decoration: underline;
+      word-break: break-all;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="video-wrap">
+    <video 
+      id="mainVideo" 
+      autoplay 
+      muted 
+      playsinline 
+      webkit-playsinline 
+      x5-playsinline
+    >
+      <source src="video.mp4" type="video/mp4">
+    </video>
+    <div class="touch-tip" id="tip">轻触屏幕播放视频</div>
+  </div>
+
+  <div class="envelope-box">
+    <img class="envelope-img" src="envelope.png" alt="信封">
+    <button class="open-btn" id="openBtn">打开信件</button>
+  </div>
+
+  <div class="letter-mask" id="mask">
+    <div class="letter-content" id="letterContent">
+      <p>致地面以下，也致地面以上的你</p>
+      <br>
+      <p>你好，地面的朋友：</p>
+      <br>
+      <p>我是一只鹅</p>
+      <br>
+      <p>当你读到这封信时，我们已经重新站在了太阳底下。恭喜你，刚刚完成了一场冒险的旅程。</p>
+      <br>
+      <p>你知道吗？在洞穴里，我最喜欢的时刻，不是走过最后一段看到出口的光，而是所有人关掉头灯的那一瞬间。在绝对的黑暗和寂静里，什么都看不见，只能听见自己的心跳和呼吸。</p>
+      <br>
+      <p>那一刻，我们无法征服黑暗，我们只能与它共存。</p>
+      <br>
+      <p>其实我现在面对大四这一年，金九银十春招秋招校招考编依旧杳无音讯，我站在人生的"洞口"往下看时，也觉得深不见底。但我第一次探洞让我明白一件事：走下去的唯一方法，不是看清每一块石头，而是相信脚下这一步，然后迈出去。</p>
+      <br>
+      <p>谢谢你们让我当了一回“引路人”。希望这张明信片能提醒你：</p>
+      <p>即使以后的日子伸手不见五指，别忘了，你曾经在真正的黑暗里，走得那么稳。</p>
+      <br>
+      <p>我在我的毕业论文致谢里面写到</p>
+      <p>“我来到师大上学完全是缘分，我第一次旅行就來到的桂林，前往融创乘坐K96公交路过雁中路1号，就没想到我能在这上四年大学。其实说来非常惭愧，大学四年期间一直在到处乱跑，北京上海杭州天津，南京济南衡阳香港。主流文化对物质学历的焦虑以及对美的忽视时常让我感到焦虑，彷佛在睡觉前没有完成清单上的某一项就是蹉跎了时光。幸好我还能出逃，跑到空旷的山野，无亲的人流，到另一个空间换一种呼吸方式，如鸟翱翔，从禁锢的身心飞出去，飞够了再飞回来。我喜欢航班即将起飞的时刻，身边的人说各式各样的语言，来往穿梭到世界各地，我也要把小小的自己送到一个从未踏足的角落，初升的太阳一点点光亮起来，我感觉到一种无限膨胀的自由。”</p>
+      <br>
+      <p>而现在，在人们常说的转折，我要摸黑走向自己的下一个洞口。</p>
+      <br>
+      <p>这个夏天，我在做一些准备，准备一个人去旅行。我会去很多没去过的地方——可能是雪山脚下，可能是海边小镇，也可能只是某条不知名的公路尽头。说实话，我也说不准这一路会遇见什么，但这正是出发的理由。</p>
+      <br>
+      <p>如果你愿意，我想邀请你做我这段旅途的"同行者"。</p>
+      <br>
+      <p>我的邮箱是：egoose@qq.com <a class="link-text" href="mailto:egoose@qq.com">一只鹅</a></p>
+      <p>我的小红薯账号：<a class="link-text" href="https://xhslink.com/m/4k6yOwpb2e9" target="_blank">点击查看我的小红薯</a></p>
+      <br>
+      <p>当你读到这封信时，无论你是在家里、在办公室，还是在另一段旅途上——给我写几句话吧。可以是你自己的旅行故事，可以是你在某个陌生角落的奇遇，也可以只是你此刻的心情。我会在每个落脚的地方打开邮箱，读你们写来的话，然后带着这些故事继续上路。</p>
+      <br>
+      <p>我想，洞穴里的黑暗我们曾一起穿过；而未来的辽阔，我们换一种方式，彼此陪伴。</p>
+      <br>
+      <p>后会有期，洞友。如果生活让你觉得透不过气，可以把头灯关掉，先听一听自己的心跳。</p>
+      <button class="close-letter" id="closeBtn">收起信件</button>
+    </div>
+  </div>
+
+<script>
+const video = document.getElementById('mainVideo');
+const tip = document.getElementById('tip');
+const videoWrap = document.querySelector('.video-wrap');
+const envelopeBox = document.querySelector('.envelope-box');
+const envelopeImg = document.querySelector('.envelope-img');
+const openBtn = document.getElementById('openBtn');
+const mask = document.getElementById('mask');
+const letterContent = document.getElementById('letterContent');
+const closeBtn = document.getElementById('closeBtn');
+let played = false;
+
+// 判断iPhone微信
+const ua = navigator.userAgent;
+const isIPhoneWechat = /iPhone/i.test(ua) && /MicroMessenger/i.test(ua);
+
+function playVideo() {
+  if (played) return;
+  played = true;
+  tip.style.display = 'none';
+  video.play().catch(() => {});
+}
+
+// 微信自动播放兼容
+if (/MicroMessenger/i.test(ua)) {
+  if (window.WeixinJSBridge) {
+    playVideo();
+  } else {
+    document.addEventListener('WeixinJSBridgeReady', playVideo, false);
+  }
+} else {
+  playVideo();
+}
+
+if (isIPhoneWechat) {
+  tip.style.display = 'block';
+  document.body.addEventListener('touchstart', playVideo, { once:true });
+  document.body.addEventListener('click', playVideo, { once:true });
+}
+
+// 视频结束平滑切换信封
+video.addEventListener('ended', () => {
+  videoWrap.style.opacity = '0';
+  setTimeout(() => {
+    videoWrap.style.display = 'none';
+    envelopeBox.style.display = 'flex';
+    setTimeout(() => {
+      envelopeBox.style.opacity = '1';
+    }, 100);
+  }, 500);
+});
+
+// 打开信件动画
+openBtn.addEventListener('click', () => {
+  envelopeImg.style.opacity = '0';
+  openBtn.style.opacity = '0';
+  setTimeout(() => {
+    envelopeImg.style.display = 'none';
+    openBtn.style.display = 'none';
+    mask.style.display = 'flex';
+    setTimeout(()=>{
+      letterContent.classList.add('show');
+    },50)
+  }, 500);
+});
+
+// 关闭信件动画
+closeBtn.addEventListener('click', () => {
+  letterContent.classList.remove('show');
+  setTimeout(() => {
+    mask.style.display = 'none';
+    envelopeImg.style.display = 'block';
+    openBtn.style.display = 'block';
+    void envelopeImg.offsetWidth;
+    void openBtn.offsetWidth;
+    envelopeImg.style.opacity = '1';
+    openBtn.style.opacity = '1';
+  }, 800);
+});
+</script>
+</body>
+</html>
